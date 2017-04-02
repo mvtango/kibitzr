@@ -10,4 +10,5 @@ python:
 #   - SELENIUM_VERSION=<3.0
 #   - SELENIUM_VERSION=>=3.0
 install: pip install -e . -r requirements_dev.txt  # "selenium${SELENIUM_VERSION}"
+before_script: flake8 kibitzr
 script: py.test -v --cov kibitzr --cov-report term-missing
