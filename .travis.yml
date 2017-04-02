@@ -6,8 +6,8 @@ python:
   - 2.7
   - 3.4
   - 3.5
-env:
-  - SELENIUM_VERSION=<3.0
-  - SELENIUM_VERSION=>=3.0
-install: pip install -r requirements_dev.txt "selenium${SELENIUM_VERSION}"
+# env:
+#   - SELENIUM_VERSION=<3.0
+#   - SELENIUM_VERSION=>=3.0
+install: pip install -r requirements_dev.txt  # "selenium${SELENIUM_VERSION}"
 script: py.test -v --cov kibitzr --cov-report term-missing
