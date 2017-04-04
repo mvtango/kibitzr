@@ -11,6 +11,8 @@ env:
   - SELENIUM_VERSION=">=3.0"
 before_install:
   - pip install -U pip pytest
+  - dpkg -s firefox
+  - sudo apt show firefox -a
 install:
   - >
     curl -L https://github.com/mozilla/geckodriver/releases/download/v0.15.0/geckodriver-v0.15.0-linux64.tar.gz
