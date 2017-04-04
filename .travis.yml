@@ -9,8 +9,11 @@ python:
 addons:
     firefox: "52.0"
 before_install:
-  - pip install -U pip pytest
+  - pip install -U pip pytest wheel
+  - python setup.py bdist_wheel
+  - rm -rf kibitzr
 install:
+  - pip install dist/kibitzr*.whl
   - >
     curl -L https://github.com/mozilla/geckodriver/releases/download/v0.15.0/geckodriver-v0.15.0-linux64.tar.gz
     | tar zxf -
