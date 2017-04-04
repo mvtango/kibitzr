@@ -9,6 +9,8 @@ python:
 env:
   - SELENIUM_VERSION="<3.0"
   - SELENIUM_VERSION=">=3.0"
+addons:
+    firefox: "52.0"
 before_install:
   - pip install -U pip pytest
   - dpkg -s firefox
