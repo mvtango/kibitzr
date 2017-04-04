@@ -10,7 +10,7 @@ python:
 #   - SELENIUM_VERSION=<3.0
 #   - SELENIUM_VERSION=>=3.0
 before_install:
-  - pip install -U pip, pytest
+  - pip install -U pip pytest
 install:
   - pip install -e . -r requirements_dev.txt  # "selenium${SELENIUM_VERSION}"
 before_script: flake8 kibitzr tests
