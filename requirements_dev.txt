@@ -8,7 +8,7 @@ coverage
 Sphinx
 cryptography
 pytest
-pylint
+pylint>=1.4,<1.5
 pytest-cov
 pep8
 pytest-pep8
