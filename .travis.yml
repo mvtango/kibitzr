@@ -12,10 +12,10 @@ env:
 before_install:
   - pip install -U pip pytest
 install:
-  - pip install -e . -r requirements_dev.txt "selenium${SELENIUM_VERSION}"
   - >
-    cd /usr/local/bin
-    && curl -L https://github.com/mozilla/geckodriver/releases/download/v0.15.0/geckodriver-v0.15.0-linux64.tar.gz
-    | sudo tar zxf -
+    curl -L https://github.com/mozilla/geckodriver/releases/download/v0.15.0/geckodriver-v0.15.0-linux64.tar.gz
+    | tar zxf -
+    && sudo mv geckodriver /usr/local/bin/
+  - pip install -e . -r requirements_dev.txt "selenium${SELENIUM_VERSION}"
 before_script: flake8 kibitzr tests
 script: py.test -v --cov kibitzr --cov-report term-missing
