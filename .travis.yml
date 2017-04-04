@@ -7,8 +7,8 @@ python:
   - 3.4
   - 3.5
 env:
-  - SELENIUM_VERSION=<3.0
-  - SELENIUM_VERSION=>=3.0
+  - SELENIUM_VERSION="<3.0"
+  - SELENIUM_VERSION=">=3.0"
 before_install:
   - pip install -U pip pytest
 install:
