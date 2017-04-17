@@ -14,7 +14,7 @@ import sh
 from lazy_object_proxy import Proxy as Lazy
 
 from .storage import PageHistory
-from .xpathtools import XPathDict
+from .jinja2_transform import jinja2_render
 
 logger = logging.getLogger(__name__)
 jq = Lazy(lambda: sh.jq.bake('--monochrome-output', '--raw-output'))
@@ -35,9 +35,11 @@ def pipeline_factory(conf):
 
 def pipeline(ok, content, transformers):
     for transformer in transformers:
+        logger.debug("Content: {}".format(repr(content)[:90]))
         if ok:
             ok, content = transformer(content)
         else:
+            logger.debug("transformer failed. aborting.")
             break
     return ok, content
 
@@ -55,7 +57,7 @@ def transformer_factory(conf, rule):
         return functools.partial(tag_selector, value)
     elif name == 'text':
         if value :
-            return functools.partial(xpath_template,value)
+            return functools.partial(jinja2_template,conf,value)
         else :
             return extract_text
     elif name == 'changes':
@@ -131,11 +133,9 @@ def xpath_selector(selector, html):
         logger.warning('XPath selector not found: %r', selector)
         return False, html
 
-def xpath_template(template, html):
-    root = etree.fromstring(html, parser=etree.HTMLParser())
-    xpd=XPathDict(root)
+def jinja2_template(conf,template, html):
     try :
-        return True, template.format(xpath=xpd)
+        return True, jinja2_render(template,config=conf,html=html)
     except Exception as e :
         logger.exception(e)
         return False, html
