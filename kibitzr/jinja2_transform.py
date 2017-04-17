@@ -121,7 +121,7 @@ def xpath_filter(html,path) :
         else : # xpath expression selected a string, i.e. an element value
             return strip_leading_and_trailing_whitespace("\t".join(elements))
     else :
-        raise ValueError("XPath expression {path} not found in {0}".format(etree.tostring(html)[:90],**locals()))
+        raise ValueError("XPath expression {path} not found in {0}".format(etree.tostring(root)[:90],**locals()))
 
 
 def css_filter(html,expression) :
@@ -131,6 +131,8 @@ def css_filter(html,expression) :
         return six.text_type(element)
     else:
         raise KeyError('CSS selector not found: %r', selector)
+
+
 
 
 def fileloader(filename) :
