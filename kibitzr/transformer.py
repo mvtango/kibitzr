@@ -115,12 +115,15 @@ def xpath_selector(selector, html):
     root = etree.fromstring(html, parser=etree.HTMLParser())
     elements = root.xpath(selector)
     if elements:
-        return True, etree.tostring(
-            next(iter(elements)),
-            method='html',
-            pretty_print=True,
-            encoding='unicode',
-        )
+        if type(elements[0]) == etree._Element :
+            return True, etree.tostring(
+                next(iter(elements)),
+                method='html',
+                pretty_print=True,
+                encoding='unicode',
+            )
+        else : # xpath expression selected a string, i.e. an element value
+            return True, "\t".join(elements)
     else:
         logger.warning('XPath selector not found: %r', selector)
         return False, html
