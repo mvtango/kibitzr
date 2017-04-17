@@ -14,7 +14,7 @@ import sh
 from lazy_object_proxy import Proxy as Lazy
 
 from .storage import PageHistory
-
+from .xpathtools import XPathDict
 
 logger = logging.getLogger(__name__)
 jq = Lazy(lambda: sh.jq.bake('--monochrome-output', '--raw-output'))
@@ -54,7 +54,10 @@ def transformer_factory(conf, rule):
     elif name == 'tag':
         return functools.partial(tag_selector, value)
     elif name == 'text':
-        return extract_text
+        if value :
+            return functools.partial(xpath_template,value)
+        else :
+            return extract_text
     elif name == 'changes':
         if value and value.lower() == 'verbose':
             return functools.partial(PageHistory(conf).report_changes,
@@ -126,6 +129,15 @@ def xpath_selector(selector, html):
             return True, "\t".join(elements)
     else:
         logger.warning('XPath selector not found: %r', selector)
+        return False, html
+
+def xpath_template(template, html):
+    root = etree.fromstring(html, parser=etree.HTMLParser())
+    xpd=XPathDict(root)
+    try :
+        return True, template.format(xpath=xpd)
+    except Exception as e :
+        logger.exception(e)
         return False, html
 
 
