@@ -102,8 +102,8 @@ class PageHistory(object):
             before = None
         after = self.git.show('HEAD:content').strip()
         if before is not None:
-            return (u'{subject}\nPrevious value:\n{before}\n'
-                    u'New value:\n{after}'
+            return (u'{subject}\New value:\n{after}\n'
+                    u'Old value:\n{before}\n'
                     .format(subject=self.commit_msg,
                             before=before,
                             after=after))
