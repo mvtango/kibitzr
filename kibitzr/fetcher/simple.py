@@ -25,5 +25,11 @@ class SessionFetcher(object):
                 else:
                     sleep(5)
                     continue
+            except requests.ConnectionError:
+                if retry == retries - 1:
+                    raise
+                else:
+                    sleep(15)
+                    continue
             ok = (response.status_code in self.valid_http)
             return ok, response.text
