@@ -148,8 +148,6 @@ def css_filter(html, expression):
         raise KeyError('CSS selector not found: %r', expression)
 
 
-
-
 def fileloader(filename):
     with open(filename) as f:
         return "".join((a for a in f.read()))
@@ -162,12 +160,31 @@ env = Environment(loader=FunctionLoader(fileloader),
                        ]
                   )
 
-def joinurl(url,base) :
-    return urljoin(base,url)
+
+def joinurl(url, base):
+    return urljoin(base, url)
+
+
+def match(text, exp):
+    r = re.compile(exp)
+    m = r.search(text)
+    if m:
+        if m.groups():
+            if len(m.groups()) == 1:
+                return m.groups()[0]
+            else:
+                return m.groups()
+        elif m.groupdict():
+            return m.groupdict()
+    else:
+        return("")
+
 
 env.filters["xpath"] = xpath_filter
 env.filters["css"] = css_filter
 env.filters["urljoin"] = joinurl
+env.filters["match"] = match
+
 
 def jinja2_render(template, *args, **kwargs):
     t = env.from_string(template)
