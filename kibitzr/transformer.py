@@ -74,24 +74,26 @@ def transformer_factory(conf, rule):
         return sort_lines
     elif name == 'cut':
         return functools.partial(cut_lines, value)
+    elif name == 'object':
+        return functools.partial(make_object, conf, value)
     else:
         raise RuntimeError(
-            "Unknown transformer: %r" % (name,)
-        )
+                "Unknown transformer: %r" % (name,)
+                )
 
 
 def pretty_json(text):
     json_dump = json.dumps(
-        json.loads(text),
-        indent=2,
-        sort_keys=True,
-        ensure_ascii=False,
-        # encoding='utf-8',
-    )
+            json.loads(text),
+            indent=2,
+            sort_keys=True,
+            ensure_ascii=False,
+            # encoding='utf-8',
+            )
     return True, u'\n'.join([
         line.rstrip()
         for line in json_dump.splitlines()
-    ])
+        ])
 
 
 def tag_selector(name, html):
@@ -122,11 +124,11 @@ def xpath_selector(selector, html):
     if elements:
         if type(elements[0]) == etree._Element:
             return True, etree.tostring(
-                next(iter(elements)),
-                method='html',
-                pretty_print=True,
-                encoding='unicode',
-            )
+                    next(iter(elements)),
+                    method='html',
+                    pretty_print=True,
+                    encoding='unicode',
+                    )
         else:  # xpath expression selected a string, i.e. an element value
             return True, "\t".join(elements)
     else:
@@ -140,6 +142,15 @@ def jinja2_template(conf, template, html):
     except Exception as e:
         logger.exception(e)
         return False, html
+
+
+def make_object(conf, value, html):
+    obj = dict()
+    for (k, v) in value.items():
+        if "{{" not in v:
+            v = "{{ html | %s }}" % v
+            obj[k] = jinja2_render(v, config=conf, html=html)
+    return True, json.dumps(obj)
 
 
 def extract_text(html):
