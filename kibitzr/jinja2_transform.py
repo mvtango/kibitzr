@@ -8,6 +8,11 @@ import six
 
 from jinja2 import Environment, FunctionLoader
 
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
+
 
 spaces_re = re.compile(r"^\s*(.*\S)\s*$")
 
@@ -143,6 +148,8 @@ def css_filter(html, expression):
         raise KeyError('CSS selector not found: %r', expression)
 
 
+
+
 def fileloader(filename):
     with open(filename) as f:
         return "".join((a for a in f.read()))
@@ -155,9 +162,12 @@ env = Environment(loader=FunctionLoader(fileloader),
                        ]
                   )
 
+def joinurl(url,base) :
+    return urljoin(base,url)
+
 env.filters["xpath"] = xpath_filter
 env.filters["css"] = css_filter
-
+env.filters["urljoin"] = joinurl
 
 def jinja2_render(template, *args, **kwargs):
     t = env.from_string(template)
