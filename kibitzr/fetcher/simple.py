@@ -40,7 +40,7 @@ class SessionFetcher(object):
                 else:
                     sleep(15)
                     continue
-            except TimeoutError :
+            except TimeoutError:
                 if retry == retries - 1:
                     raise
                 else:
