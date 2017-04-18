@@ -56,9 +56,9 @@ def transformer_factory(conf, rule):
     elif name == 'tag':
         return functools.partial(tag_selector, value)
     elif name == 'text':
-        if value :
-            return functools.partial(jinja2_template,conf,value)
-        else :
+        if value:
+            return functools.partial(jinja2_template, conf, value)
+        else:
             return extract_text
     elif name == 'changes':
         if value and value.lower() == 'verbose':
@@ -120,23 +120,24 @@ def xpath_selector(selector, html):
     root = etree.fromstring(html, parser=etree.HTMLParser())
     elements = root.xpath(selector)
     if elements:
-        if type(elements[0]) == etree._Element :
+        if type(elements[0]) == etree._Element:
             return True, etree.tostring(
                 next(iter(elements)),
                 method='html',
                 pretty_print=True,
                 encoding='unicode',
             )
-        else : # xpath expression selected a string, i.e. an element value
+        else:  # xpath expression selected a string, i.e. an element value
             return True, "\t".join(elements)
     else:
         logger.warning('XPath selector not found: %r', selector)
         return False, html
 
-def jinja2_template(conf,template, html):
-    try :
-        return True, jinja2_render(template,config=conf,html=html)
-    except Exception as e :
+
+def jinja2_template(conf, template, html):
+    try:
+        return True, jinja2_render(template, config=conf, html=html)
+    except Exception as e:
         logger.exception(e)
         return False, html
 
