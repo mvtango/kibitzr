@@ -40,6 +40,12 @@ class SessionFetcher(object):
                 else:
                     sleep(15)
                     continue
+            except TimeoutError :
+                if retry == retries - 1:
+                    raise
+                else:
+                    sleep(60*(retry+1))
+                    continue
             if response.status_code == 200:
                 for k in self.last_headers.keys():
                     v = response.headers.get(k, False)
