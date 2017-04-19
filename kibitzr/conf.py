@@ -2,9 +2,8 @@ import os
 import copy
 import logging.config
 import contextlib
-
 import yaml
-
+import yamlordereddictloader
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +120,7 @@ class ReloadableSettings(object):
         Read and parse configuration file
         """
         with self.open_conf() as fp:
-            return yaml.load(fp)
+            return yaml.load(fp, Loader=yamlordereddictloader.Loader)
 
     @contextlib.contextmanager
     def open_conf(self):
