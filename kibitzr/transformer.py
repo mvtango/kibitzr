@@ -7,7 +7,7 @@ import contextlib
 import functools
 import json
 from lxml import etree
-
+from collections import OrderedDict
 import six
 from bs4 import BeautifulSoup
 import sh
@@ -145,11 +145,11 @@ def jinja2_template(conf, template, html):
 
 
 def make_object(conf, value, html):
-    obj = dict()
+    obj = OrderedDict()
     for (k, v) in value.items():
         if "{{" not in v:
             v = "{{ html | %s }}" % v
-            obj[k] = jinja2_render(v, config=conf, html=html)
+        obj[k] = jinja2_render(v, config=conf, html=html)
     return True, json.dumps(obj)
 
 
