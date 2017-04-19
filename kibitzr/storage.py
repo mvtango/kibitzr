@@ -72,6 +72,40 @@ class PageHistory(object):
             return False
 
     def last_log(self):
+        """Return last changes with word diff"""
+        try:
+            output = self.git.diff(
+                '--no-color',
+                '--word-diff=plain',
+                'HEAD~1:content',
+                'HEAD:content',
+            ).stdout.decode('utf-8')
+        except sh.ErrorReturnCode_128:
+            result = self.git.show(
+                "HEAD:content").stdout.decode("utf-8")
+        else:
+            ago = self.git.log(
+                '-2',
+                '--pretty=format:last change was %cr',
+                'content'
+            ).stdout.decode('utf-8').splitlines()
+            lines = output.splitlines()
+            result = u'\n'.join(
+                itertools.chain(
+                    itertools.islice(
+                        itertools.dropwhile(
+                            lambda x: not x.startswith('@@'),
+                            lines[1:],
+                        ),
+                        1,
+                        None,
+                    ),
+                    itertools.islice(ago, 1, None),
+                )
+            )
+        return result
+
+    def _last_log(self):
         """Return last changes in truncated unified diff format"""
         output = self.git.log(
             '-1',
