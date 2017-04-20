@@ -71,7 +71,7 @@ class Checker(object):
             logger.exception(
                 "Exception occured while fetching page"
             )
-            ok, content = False, traceback.format_exc()
+            ok, content = False, "Exception: %s" % traceback.format_exc()[:60]
         return ok, content
 
     def downloader_factory(self):
