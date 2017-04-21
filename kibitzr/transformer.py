@@ -149,7 +149,7 @@ def make_object(conf, value, html):
     for (k, v) in value.items():
         if "{{" not in v:
             v = "{{ html | %s }}" % v
-        obj[k] = jinja2_render(v, config=conf, html=html)
+        obj[k] = jinja2_render(v, config=conf, html=html, object=obj)
     return True, json.dumps(obj)
 
 
