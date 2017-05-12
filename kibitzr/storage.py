@@ -1,10 +1,25 @@
 import os
 import itertools
 import io
-
+import json
+from jsondiff import diff
 import sh
 
 from .utils import normalize_filename
+
+from jinja2 import Environment, FunctionLoader
+
+def fileloader(filename):
+    with open(filename) as f:
+        return "".join((a for a in f.read()))
+
+
+jinja2env = Environment(loader=FunctionLoader(fileloader),
+                  extensions=[
+                       'jinja2.ext.with_',
+                       'jinja2_slug.SlugExtension'
+                       ]
+                  )
 
 
 def report_changes(conf, content):
@@ -88,6 +103,11 @@ class ChangesReporter(object):
     def __init__(self, git, subject, style=None):
         self.git = git
         self.subject = subject
+        if "{" in style :
+            self.template=jinja2env.from_string(style)
+            style="json"
+        else :
+            self.template=None
         self.report = getattr(self, style or 'default', self.default)
 
     def word(self):
@@ -162,3 +182,33 @@ class ChangesReporter(object):
                             after=after))
         else:
             return u'\n'.join([self.subject, after])
+
+    def json(self):
+        """Return JSON diff to be processed by other applications"""
+        try:
+            before = json.loads(self.git.show('HEAD~1:content').strip())
+        except sh.ErrorReturnCode_128:
+            before = None
+        after = json.loads(self.git.show('HEAD:content').strip())
+        if before is not None :
+            ago = self.git.log(
+                '-1',
+                '--pretty=format:%cr',
+                'content'
+            ).stdout.decode('utf-8').splitlines()[0]
+            delta=diff(before,after)
+            r={ 'before' : before,
+                      'after' : after,
+                      'delta' : delta,
+                      'time'  : ago }
+        else :
+            r={ 'before' : None,
+                     'after'  : after,
+                     'delta'  : None,
+                     'time'   : None
+              }
+        if self.template is not None :
+            return self.template.render(**r)
+        else :
+            return json.dumps(r)
+
