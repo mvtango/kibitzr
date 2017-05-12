@@ -4,6 +4,7 @@ Built-in transforms
 import logging
 
 import six
+import code
 
 from .html import HTML_REGISTRY
 from .json_transforms import JSON_REGISTRY
@@ -28,6 +29,15 @@ def load_transforms():
     return registry
 
 
+def name_transform(o) :
+    if hasattr(o,"func") :
+        return o.func.__name__
+    if hasattr(o,"__name__") :
+        return o.__name__
+    else :
+        return(repr(o))
+
+
 class TransformPipeline(object):
 
     REGISTRY = load_transforms()
@@ -46,10 +56,9 @@ class TransformPipeline(object):
         for transform in self.transforms:
             if ok:
                 ok, content = transform(content)
-                logger.debug("OK: {}".format(repr(content)))
             else:
-                logger.debug("Error: {}".format(repr(content)))
                 content = self.on_error(content)
+            logger.debug("{} ok={}: {}".format(repr(transform),ok,repr(content)))
         if content:
             content = content.strip()
         return ok, content
