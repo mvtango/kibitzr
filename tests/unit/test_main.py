@@ -22,7 +22,7 @@ def test_loop_aborts_without_checks():
 
 @mock.patch.object(main, "check_forever", side_effect=main.on_interrupt)
 def test_main_executes_all_checks_before_loop(the_loop):
-    main.settings().pages.append({
+    main.settings().checks.append({
         'name': 'A',
         'script': {'python': 'ok, content = True, "ok"'}
     })
@@ -33,7 +33,7 @@ def test_main_executes_all_checks_before_loop(the_loop):
 
 def test_dummy_schedule():
     main.Checker.check.side_effect = interrupt_on_nth_call(2)
-    main.settings().pages.append({
+    main.settings().checks.append({
         'name': 'A',
         'script': {'python': 'ok, content = True, "ok"'},
         'period': 0,
@@ -51,3 +51,14 @@ def interrupt_on_nth_call(n):
         return None
     interrupter.n = n
     return interrupter
+
+
+@mock.patch.object(main, "check_forever", side_effect=main.on_interrupt)
+def test_main_filters_names(the_loop):
+    main.settings().checks.extend([
+        {'name': 'A', 'url': 'A'},
+        {'name': 'B', 'url': 'B'},
+    ])
+    assert 0 == main.main(names=['B'])
+    assert the_loop.call_count == 1
+    assert the_loop.call_args[0][0][0].check.call_count == 1

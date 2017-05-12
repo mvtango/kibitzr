@@ -17,7 +17,7 @@ class PageHistory(object):
     """
     STORAGE_DIR = "pages"
 
-    def __init__(self, conf, storage_dir=None):
+    def __init__(self, conf, storage_dir=None, style=None):
         self.storage_dir = storage_dir or self.STORAGE_DIR
         self.cwd = os.path.join(
             self.storage_dir,
@@ -36,22 +36,24 @@ class PageHistory(object):
             )
         else:
             self.commit_msg = conf['name']
+        self.reporter = ChangesReporter(
+            self.git,
+            self.commit_msg,
+            style,
+        )
 
-    def report_changes(self, content, verbose=False):
+    def report_changes(self, content):
         """
         1) Write changes in file,
         2) Commit changes in git
         3.1) If something changed, return tuple(True, changes)
         3.2) If nothing changed, return tuple(False, None)
-        If verbose is True, return changes in human-friendly format,
+        If style is "verbose", return changes in human-friendly format,
         else use unified diff
         """
         self.write(content)
         if self.commit():
-            if verbose:
-                return True, self.before_after()
-            else:
-                return True, self.last_log()
+            return True, self.reporter.report()
         else:
             return False, None
 
@@ -71,7 +73,24 @@ class PageHistory(object):
         except sh.ErrorReturnCode_1:
             return False
 
-    def last_log(self):
+    def ensure_repo_exists(self):
+        """Create git repo if one does not exist yet"""
+        if not os.path.isdir(self.cwd):
+            os.makedirs(self.cwd)
+        if not os.path.isdir(os.path.join(self.cwd, ".git")):
+            self.git.init()
+            self.git.config("user.email", "you@example.com")
+            self.git.config("user.name", "Your Name")
+
+
+class ChangesReporter(object):
+
+    def __init__(self, git, subject, style=None):
+        self.git = git
+        self.subject = subject
+        self.report = getattr(self, style or 'default', self.default)
+
+    def word(self):
         """Return last changes with word diff"""
         try:
             output = self.git.diff(
@@ -105,7 +124,7 @@ class PageHistory(object):
             )
         return result
 
-    def _last_log(self):
+    def default(self):
         """Return last changes in truncated unified diff format"""
         output = self.git.log(
             '-1',
@@ -128,7 +147,7 @@ class PageHistory(object):
             )
         )
 
-    def before_after(self):
+    def verbose(self):
         """Return changes in human-friendly format #14"""
         try:
             before = self.git.show('HEAD~1:content').strip()
@@ -138,17 +157,8 @@ class PageHistory(object):
         if before is not None:
             return (u'{subject}\nNew value:\n{after}\n'
                     u'Old value:\n{before}\n'
-                    .format(subject=self.commit_msg,
+                    .format(subject=self.subject,
                             before=before,
                             after=after))
         else:
-            return u'\n'.join([self.commit_msg, after])
-
-    def ensure_repo_exists(self):
-        """Create git repo if one does not exist yet"""
-        if not os.path.isdir(self.cwd):
-            os.makedirs(self.cwd)
-        if not os.path.isdir(os.path.join(self.cwd, ".git")):
-            self.git.init()
-            self.git.config("user.email", "you@example.com")
-            self.git.config("user.name", "Your Name")
+            return u'\n'.join([self.subject, after])

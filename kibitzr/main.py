@@ -5,9 +5,10 @@ import code
 
 import schedule
 
-from .conf import settings
-from .fetcher import cleanup_fetchers
+from .conf import settings, SettingsParser
+from .fetcher import cleanup_fetchers, persistent_firefox
 from .checker import Checker
+from .bootstrap import create_boilerplate
 
 
 logger = logging.getLogger(__name__)
@@ -16,16 +17,27 @@ interrupted = False
 open_backdoor = False
 
 
+__all__ = [
+    'main',
+    'run_firefox',
+    'execute_conf',
+    'create_boilerplate',
+]
+
+
+def bootstrap():
+    create_boilerplate()
+
+
 def main(once=False, log_level=logging.INFO, names=None):
     global reload_conf_pending, interrupted, open_backdoor
     # Reset global state for testability:
     reload_conf_pending, interrupted, open_backdoor = False, False, False
-    logging.getLogger("").setLevel(log_level)
-    logger.debug("Arguments: %r",
-                 {"once": once, "log_level": log_level})
+    setup_logger(log_level)
     signal.signal(signal.SIGUSR1, on_reload_config)
     signal.signal(signal.SIGUSR2, on_backdoor)
     signal.signal(signal.SIGINT, on_interrupt)
+    signal.signal(signal.SIGTERM, on_interrupt)
     try:
         while True:
             if interrupted:
@@ -34,7 +46,7 @@ def main(once=False, log_level=logging.INFO, names=None):
                 settings().reread()
                 reload_conf_pending = False
             checkers = Checker.create_from_settings(
-                checks=settings().pages,
+                checks=settings().checks,
                 names=names
             )
             if checkers:
@@ -49,6 +61,23 @@ def main(once=False, log_level=logging.INFO, names=None):
     finally:
         cleanup_fetchers()
     return 0
+
+
+def execute_conf(conf):
+    logging.basicConfig(level=logging.WARNING)
+    logging.getLogger('').handlers[0].level = logging.WARNING
+    checks = SettingsParser().parse_checks(conf)
+    for check in checks:
+        Checker(check).check()
+
+
+def run_firefox():
+    setup_logger(logging.DEBUG)
+    persistent_firefox()
+
+
+def setup_logger(log_level=logging.INFO):
+    logging.getLogger("").setLevel(log_level)
 
 
 def check_forever(checkers):
@@ -74,7 +103,7 @@ def schedule_checks(checkers):
     schedule.clear()
     for checker in checkers:
         conf = checker.conf
-        period = conf.get("period", 300)
+        period = conf["period"]
         logger.info(
             "Scheduling checks for %r every %r seconds",
             conf["name"],

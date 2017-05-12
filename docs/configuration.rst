@@ -3,6 +3,9 @@
 =============
 Configuration
 =============
+
+.. _configuration-location:
+
 Location
 --------
 
@@ -16,16 +19,21 @@ It tries to find it in following places:
 ``kibitzr-creds.yml`` can be used to store credentials,
 it must be placed in the same directory as ``kibitzr.yml``.
 
+.. _configuration-format:
+
 Format
 ------
 
 ``kibitzr`` serves list of ``checks``.
 
-Each check must have a **unique** ``name``.
+Each check may have a ``name``. If ``name`` is present it **must be unique**.
+If no name is provided, it will be auto-generated.
+
 The name is used in notifications and internally as a check identifier.
 
-Next, check may have ``url``. If it is provided, it will be used to fetch data.
-Another option is ``script``, which is arbitrary bash script.
+Check may have ``url``.
+If it is provided, it will be used to fetch data.
+Another option is ``script``, which is an arbitrary bash script.
 
 Check will be executed every ``period`` seconds.
 
@@ -41,13 +49,19 @@ supported notifiers.
 
 Kibitzr supports browser interactions. They can be activated by using any of keys:
 
-   1. ``delay`` - number of seconds to wait after page loaded in browser to process Javascipt.
+   1. ``delay`` - number of seconds to wait after page loaded in browser to process JavaScript.
    2. ``scenario`` - python scenario acting on selenium_ driver after page load.
+   3. ``form`` - shorthand for simple selenium_ scenarios.
 
-Simple example
---------------
+Browser interaction is a strong side of Kibitzr and a tough article in itself.
+Please refer to :ref:`Browser automation <scenario>` documentation.
 
-Let's start with something simple. It's not very useful check, but it'll show the basics.
+.. _configuration-example:
+
+Example break down
+------------------
+
+Let's start with something simple. It's not very useful check, but it shows the basics.
 
 .. code-block:: yaml
 
@@ -55,10 +69,10 @@ Let's start with something simple. It's not very useful check, but it'll show th
       - name: Current Time
         url: https://www.timeanddate.com/worldclock/usa/new-york
         transform:
-            - css: "#qlook > div"
-            - text
+          - css: "#qlook > div"
+          - text
         notify:
-            - python: print(text)
+          - python: print(text)
         period: 15
 
 Copy paste it to your ``kibitzr.yml`` and launch ``kibitzr``.
@@ -143,43 +157,12 @@ Last line of configuration file is the ``period``:
         period: 15
 
 The number of seconds to wait between (*start of*) checks.
-
-And here is the more complex example:
-
-.. code-block:: yaml
-
-    pages:
-    
-      - name: NASA awards on preview
-        url: http://preview.ncbi.nlm.nih.gov/pmc/utils/granthub/award/?authority.code=nasa&format=json
-        transform:
-          - json
-          - changes
-        period: 30
-        notify:
-          - mailgun
-    
-      - name: Rocket launches
-        url: http://www.nasa.gov/centers/kennedy/launchingrockets/index.html
-        transform: changes
-        period: 600
-        notify:
-          - mailgun
-    
-    notifiers:
-    
-        # This can be moved to kibitzr-creds.yml:
-        mailgun:
-            key: <mailgun api key>
-            domain: <your domain>
-            to: <your email>
-
-This configuration tells kibitzr to check URL at http://preview... every 5 minutes (300 seconds),
-prettify JSON and compare against previously saved result. git diff output is sent through mailgun.
-
+Kibitzr understands time to the extent, you can write ``1 hour`` instead of ``3600``.
+For the more complete list of available formats refer to pytimeparse_ docs.
 
 .. _requests: http://docs.python-requests.org/
 .. _BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
 .. _mailgun: https://mailgun.com/
 .. _slack: https://slack.com/
 .. _selenium: https://selenium-python.readthedocs.io/api.html
+.. _pytimeparse: https://pypi.python.org/pypi/pytimeparse/

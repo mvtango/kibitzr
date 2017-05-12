@@ -11,10 +11,12 @@ Kibitzr supports following notifier types:
 
 1. ``smtp`` - Send an e-mail through any SMTP server
 2. ``mailgun`` - or send it through mailgun_ API
-3. ``slack`` - Trigger `Slack Incomming Webhook`
-4. ``gitter`` - Or post to gitter's chat
-5. ``python`` - Run Python script
-6. ``bash`` - Run bash script
+3. ``slack`` - Trigger `Slack Incoming Webhook`_
+4. ``telegram`` - Send message through :ref:`private Telegram Bot <telegram>`
+5. ``zapier`` - Trigger `Zapier Catch Hook`_
+6. ``gitter`` - Or post to gitter's chat
+7. ``python`` - Run Python script
+8. ``bash`` - Run bash script
 
 Each notifier requires different configuration.
 For the sake of security, sensitive information
@@ -23,7 +25,8 @@ be stored in separate file - ``kibitzr-creds.yml``
 It's recommended to restrict access to this file to the owner.
 
 .. _mailgun: https://www.mailgun.com/
-.. _Slack Incomming Webhook: https://api.slack.com/incoming-webhooks
+.. _Slack Incoming Webhook: https://api.slack.com/incoming-webhooks
+.. _Zapier Catch Hook: https://zapier.com/developer/documentation/v2/static-webhooks/
 
 
 Example configurations
@@ -47,3 +50,9 @@ Example configurations
 
     gitter:
         url: https://webhooks.gitter.im/e/24a1042f49211ca9504a
+
+    telegram:
+        token: 343558405:ABHCRh_rnzO554skSlISotUnNFWt3p8P004
+
+    zapier:
+        url: https://hooks.zapier.com/hooks/catch/1670195/9asu13/

@@ -1,6 +1,8 @@
-from .browser import firefox_fetcher, cleanup  # noqa
-from .simple import SessionFetcher  # noqa
-from .script import fetch_by_script  # noqa
+from .factory import fetcher_factory  # noqa
+from .browser import (  # noqa
+    cleanup,
+    persistent_firefox,
+)
 
 
 def cleanup_fetchers():

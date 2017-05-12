@@ -5,8 +5,12 @@ from setuptools import setup
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+try:
+    # Might be missing if no pandoc installed
+    with open('CHANGELOG.rst') as history_file:
+        history = history_file.read()
+except IOError:
+    history = ""
 
 
 def changelog_version():
@@ -17,9 +21,10 @@ def changelog_version():
                 if set(version).issubset('0123456789.'):
                     return version
 
+
 setup(
     name='kibitzr',
-    version='3.0.1',
+    version='4.0.1',
     description="Self hosted web page changes monitoring",
     long_description=readme + '\n\n' + history,
     author="Peter Demin",
@@ -33,13 +38,14 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'kibitzr=kibitzr.cli:entry'
+            'kibitzr=kibitzr.cli:cli'
         ]
     },
     include_package_data=True,
     install_requires=[
         'Click>=6.0',
         'requests',
+        'cachecontrol',
         'schedule',
         'sh',
         'pyyaml',
@@ -49,6 +55,10 @@ setup(
         'six',
         'lxml',
         'lazy-object-proxy',
+        'python-telegram-bot',
+        'Jinja2',
+        'pytimeparse',
+        'entrypoints',
     ],
     license="MIT license",
     zip_safe=False,

@@ -1,5 +1,8 @@
 import logging
 import smtplib
+import functools
+
+import six
 
 from ..conf import settings
 
@@ -7,15 +10,34 @@ from ..conf import settings
 logger = logging.getLogger(__name__)
 
 
-def post_smtp(conf, report, notifier_conf, **kwargs):
+def notify_factory(conf, value):
+    @functools.wraps(notify)
+    def baked_notify(report):
+        return notify(
+            conf=conf,
+            report=report,
+            notifier_conf=value,
+        )
+    return baked_notify
+
+
+def notify(conf, report, notifier_conf):
     logger.info("Executing SMTP notifier")
     credentials = settings().creds['smtp']
     user = credentials['user']
     password = credentials['password']
     host = credentials['host']
     port = credentials['port']
-    recipients = notifier_conf['recipients']
-    subject = notifier_conf['subject']
+    try:
+        recipients = notifier_conf['recipients']
+    except (TypeError, KeyError):
+        recipients = notifier_conf
+    if isinstance(recipients, six.string_types):
+        recipients = [recipients]
+    try:
+        subject = notifier_conf['subject']
+    except (TypeError, KeyError):
+        subject = "Kibitzr update for " + conf['name']
     send_email(
         user=user,
         password=password,
