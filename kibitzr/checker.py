@@ -1,6 +1,7 @@
 import functools
 import logging
 import traceback
+import requests
 
 from .fetcher import (
     firefox_fetcher,
@@ -67,6 +68,10 @@ class Checker(object):
                         self.conf['name'], self.conf['url'])
         try:
             ok, content = self.downloader(self.conf)
+        except requests.RequestException as e :
+            msg="{} {name} {url}".format(e, **self.conf)
+            logger.error(msg)
+            ok, content = (False, msg)
         except Exception:
             logger.exception(
                 "Exception occured while fetching page"
@@ -114,8 +119,9 @@ class Checker(object):
     @staticmethod
     def echo(content):
         # content will be logged in notifier
-        logger.debug("Notifying on error")
-        return content
+        msg="({} (... {} chars) ".format(repr(content)[:50],len(repr(content)))
+        logger.debug("Notifying on error %s" % msg )
+        return msg
 
     @staticmethod
     def mute(content):
