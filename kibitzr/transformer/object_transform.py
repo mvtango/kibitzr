@@ -6,7 +6,7 @@ from collections import OrderedDict
 from bs4 import BeautifulSoup
 import re
 import six
-
+import jmespath
 from jinja2 import Environment, FunctionLoader
 
 try:
@@ -18,19 +18,65 @@ from .utils import bake_parametrized
 from .html import deep_recursion, extract_text
 
 from .jinja_transform import LazyHTML
+from .jinja_transform import LazyXML as originalLazyXML
+from .jinja_transform import  LazyJSON as originalLazyJSON
 
+
+class LazyJSON(originalLazyJSON) :
+
+    def jmespath(self,expression) :
+        return jmespath.search(expression,self.json,
+                 jmespath.Options(dict_cls=OrderedDict))
+
+
+class LazyXML(originalLazyXML) :
+
+    def xpath(self, selector):
+        try:
+            elements = self.root.xpath(selector)
+        except XPathEvalError as exc:
+            raise ValueError(
+               "Xpath evaluation of '{selector}' failed: {exc}".format(
+                **locals())
+            ) from exc
+        if elements:
+            if type(elements[0]) == etree._Element:
+                return strip_whitespace(etree.tostring(
+                    next(iter(elements)),
+                    method='html',
+                    pretty_print=True,
+                    encoding='unicode',
+                ))
+            else:  # xpath expression selected a string, i.e. an element value
+                return strip_whitespace("\t".join(elements))
+        else:
+            raise ValueError(
+                  "XPath expression {selector} not found in {0}".format(
+                      etree.tostring(self.root)[:90],
+                      **locals())
+                  )
+
+
+
+#
 logger = logging.getLogger(__name__)
 
 spaces_re = re.compile(r"^\s*(.*\S)\s*$")
 
 
 def object_transform(code, content, conf) :
-    html=content
+    html_object=LazyHTML(content)
+    xml_object=LazyXML(content)
+    json_object=LazyJSON(content)
     obj = OrderedDict()
     for (k, v) in code.items():
-        if "{{" not in v:
-            v = "{{ html | %s }}" % v
-        obj[k] = jinja2_render(v, config=conf, html=html, object=obj)
+        if "{" not in v:
+            v = "{{ %s }}" % v
+        obj[k] = jinja2_render(v, config=conf,
+                                  css=html_object.css,
+                                  xpath=xml_object.xpath,
+                                  jp=json_object.jmespath,
+                                  object=obj)
     return True, json.dumps(obj)
 
 
@@ -113,8 +159,8 @@ def match(text, exp):
         return("")
 
 
-env.filters["xpath"] = xpath_filter
-env.filters["css"] = css_filter
+# env.filters["xpath"] = xpath_filter
+# env.filters["css"] = css_filter
 env.filters["urljoin"] = joinurl
 env.filters["match"] = match
 
