@@ -7,20 +7,7 @@ import sh
 
 from .utils import normalize_filename
 
-from jinja2 import Environment, FunctionLoader
-
-def fileloader(filename):
-    with open(filename) as f:
-        return "".join((a for a in f.read()))
-
-
-jinja2env = Environment(loader=FunctionLoader(fileloader),
-                  extensions=[
-                       'jinja2.ext.with_',
-                       'jinja2_slug.SlugExtension'
-                       ]
-                  )
-
+from .json_changes import jinja2env
 
 def report_changes(conf, content):
     return PageHistory(conf).report_changes(content)
@@ -192,10 +179,10 @@ class ChangesReporter(object):
         after = json.loads(self.git.show('HEAD:content').strip())
         if before is not None :
             ago = self.git.log(
-                '-1',
+                '-2',
                 '--pretty=format:%cr',
                 'content'
-            ).stdout.decode('utf-8').splitlines()[0]
+            ).stdout.decode('utf-8').splitlines()[1]
             delta=diff(before,after)
             r={ 'before' : before,
                       'after' : after,
