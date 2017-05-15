@@ -262,6 +262,9 @@ class SettingsParser(object):
                         **check
                     )
                     del templated_check['template']
+                    if 'post_transform' in templated_check :
+                        templated_check['transform'].extend(templated_check['post_transform'])
+                        del templated_check['post_transform']
                     yield templated_check
                 else:
                     raise ConfigurationError(
