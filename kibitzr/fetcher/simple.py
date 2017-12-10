@@ -32,15 +32,9 @@ class SessionFetcher(object):
         })
         self.url = conf['url']
         self.valid_http = set(conf.get('valid_http', [200]))
-        self.last_headers = {'last-modified': False, 'etag': False}
 
     def fetch(self):
         retries = 3
-        headers = {}
-        if self.last_headers["last-modified"]:
-            headers["If-Modified-Since"] = self.last_headers["last-modified"]
-        elif self.last_headers["etag"]:
-            headers["If-None-Match"] = self.last_headers["etag"]
         for retry in range(retries):
             try:
                 response = self.session.get(self.url)
