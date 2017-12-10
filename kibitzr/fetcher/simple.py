@@ -32,6 +32,12 @@ class SessionFetcher(object):
         })
         self.url = conf['url']
         self.valid_http = set(conf.get('valid_http', [200]))
+        try :
+            from requests_file import FileAdapter
+        except ImportError as e:
+            logger.info("{} - FileAdapter not loaded. Install requests_file to support file://-type URLs".format(e))
+        else :
+            self.session.mount('file://',FileAdapter())
 
     def fetch(self):
         retries = 3
